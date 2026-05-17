@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, PositiveInt, constr, confloat
+from pydantic import BaseModel, Field, PositiveInt, constr, confloat, model_validator
 
 from app.models.domain import DateType
 
@@ -9,6 +9,15 @@ from app.models.domain import DateType
 class DateRange(BaseModel):
     from_date: date = Field(..., alias="from")
     to_date: date = Field(..., alias="to")
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        today = date.today()
+        if self.from_date < today or self.to_date < today:
+            raise ValueError("Travel dates cannot be in the past")
+        if self.to_date < self.from_date:
+            raise ValueError("The 'to' date must be the same as or after the 'from' date")
+        return self
 
     class Config:
         validate_by_name = True

@@ -1,11 +1,13 @@
 def test_search_post_returns_processing(test_client):
+    future_start = date.today() + timedelta(days=30)
+    future_end = date.today() + timedelta(days=60)
     payload = {
         "origin": "Helsinki",
         "travelers": 2,
         "budget": 1000,
         "currency": "USD",
         "date_type": "flexible",
-        "date_range": {"from": "2025-08-01", "to": "2025-08-31"},
+        "date_range": {"from": future_start.isoformat(), "to": future_end.isoformat()},
         "duration": {"min_days": 7, "max_days": 10},
         "preferences": ["sea", "architecture"],
         "mood": "surprise",
@@ -19,6 +21,30 @@ def test_search_post_returns_processing(test_client):
     assert isinstance(data["eta_seconds"], int)
     assert isinstance(data["summary"], str)
     assert isinstance(data["packages"], list)
+
+
+from datetime import date, timedelta
+
+
+def test_search_post_rejects_past_date(test_client):
+    yesterday = date.today() - timedelta(days=1)
+    tomorrow = date.today() + timedelta(days=10)
+    payload = {
+        "origin": "Helsinki",
+        "travelers": 2,
+        "budget": 1000,
+        "currency": "USD",
+        "date_type": "flexible",
+        "date_range": {"from": yesterday.isoformat(), "to": tomorrow.isoformat()},
+        "duration": {"min_days": 7, "max_days": 10},
+        "preferences": ["sea", "architecture"],
+        "mood": "surprise",
+    }
+
+    response = test_client.post("/api/v1/search", json=payload)
+    assert response.status_code == 422
+    errors = response.json()["detail"]
+    assert any("past" in err.get("msg", "").lower() or "date" in err.get("msg", "").lower() for err in errors)
 
 
 def test_get_search_by_request_id_returns_completed_package(test_client):
