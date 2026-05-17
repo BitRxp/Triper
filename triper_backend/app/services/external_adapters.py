@@ -7,7 +7,7 @@ from app.core.settings import settings
 
 
 class SkyscannerAdapter:
-    BASE_URL = "https://skyscanner-flights-travel-api.p.rapidapi.com/api/v1"
+    BASE_URL = "https://skyscanner-flights-travel-api.p.rapidapi.com"
 
     def __init__(self, client: Optional[httpx.Client] = None):
         self.host = settings.rapidapi_skyscanner_host
@@ -40,10 +40,10 @@ class SkyscannerAdapter:
         if not payload:
             return None
 
-        if isinstance(payload, dict) and payload.get("data"):
-            items = payload["data"]
-            if isinstance(items, list) and items:
-                return items[0]
+        if isinstance(payload, dict):
+            places = payload.get("places") or payload.get("data") or payload.get("results")
+            if isinstance(places, list) and places:
+                return places[0]
         if isinstance(payload, list) and payload:
             return payload[0]
         return None
@@ -71,7 +71,7 @@ class SkyscannerAdapter:
         if not payload:
             return []
 
-        results = payload.get("data") or payload.get("results") or payload.get("quotes") or []
+        results = payload.get("destinations") or payload.get("data") or payload.get("results") or payload.get("quotes") or []
         if isinstance(results, dict):
             results = results.get("data") or results.get("results") or []
 
@@ -92,6 +92,7 @@ class SkyscannerAdapter:
             destination = (
                 item.get("destinationName")
                 or item.get("destinationCity")
+                or item.get("name")
                 or item.get("destination")
                 or item.get("city")
                 or "Unknown destination"
