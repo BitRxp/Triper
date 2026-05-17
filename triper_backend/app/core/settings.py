@@ -1,6 +1,10 @@
 from typing import Optional
 
-from pydantic import BaseSettings, Field
+try:
+    from pydantic import BaseSettings
+except ImportError:
+    from pydantic_settings import BaseSettings
+from pydantic import Field
 
 
 class Settings(BaseSettings):
