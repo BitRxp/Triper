@@ -8,10 +8,10 @@ from app.models.domain import DateType
 
 class DateRange(BaseModel):
     from_date: date = Field(..., alias="from")
-    to_date: date
+    to_date: date = Field(..., alias="to")
 
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
 
 
 class Duration(BaseModel):
@@ -31,8 +31,8 @@ class SearchRequest(BaseModel):
     mood: Optional[str] = None
 
     class Config:
-        allow_population_by_field_name = True
-        schema_extra = {
+        validate_by_name = True
+        json_schema_extra = {
             "example": {
                 "origin": "Helsinki",
                 "travelers": 2,

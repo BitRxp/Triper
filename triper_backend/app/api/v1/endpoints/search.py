@@ -3,7 +3,7 @@ from fastapi import status as http_status
 
 from app.db.repository import InMemoryRepository
 from app.models.requests import SearchRequest
-from app.models.responses import SearchResponse
+from app.models.responses import PackageResponse, SearchResponse
 from app.services.search_service import SearchService
 
 router = APIRouter()
@@ -19,7 +19,7 @@ def create_search(request: SearchRequest):
         status=search_result.status,
         eta_seconds=5,
         summary="We are preparing ready-made holiday options within your budget",
-        packages=search_result.packages,
+        packages=[PackageResponse.model_validate(pkg.model_dump()) for pkg in search_result.packages],
     )
 
 
@@ -35,5 +35,5 @@ def get_search_result(request_id: str):
         request_id=search_result.request_id,
         status=search_result.status,
         duration_seconds=int((search_result.updated_at - search_result.created_at).total_seconds()),
-        packages=search_result.packages,
+        packages=[PackageResponse.model_validate(pkg.model_dump()) for pkg in search_result.packages],
     )
