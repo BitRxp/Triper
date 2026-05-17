@@ -14,10 +14,9 @@ class SearchService:
     def search(self, request: SearchRequest) -> SearchResultSchema:
         request_id = str(uuid4())
         packages = self._find_packages(request)
-        status = SearchStatus.completed if packages else SearchStatus.error
         result = SearchResultSchema(
             request_id=request_id,
-            status=status,
+            status=SearchStatus.processing,
             request=request,
             packages=packages,
         )
@@ -25,7 +24,12 @@ class SearchService:
         return result
 
     def load_search_result(self, request_id: str) -> Optional[SearchResultSchema]:
-        return self.repository.load_search_result(request_id)
+        result = self.repository.load_search_result(request_id)
+        if result and result.status == SearchStatus.processing:
+            result.status = SearchStatus.completed
+            result.updated_at = __import__('datetime').datetime.utcnow()
+            self.repository.save_search_result(result)
+        return result
 
     def _find_packages(self, request: SearchRequest) -> List[PackageSchema]:
         candidates = self.repository.get_seed_packages()

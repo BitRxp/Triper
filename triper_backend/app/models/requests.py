@@ -45,3 +45,11 @@ class SearchRequest(BaseModel):
                 "mood": "surprise",
             }
         }
+
+
+class FeedbackRequest(BaseModel):
+    request_id: str
+    package_id: str
+    rating: PositiveInt
+    comment: Optional[str] = None
+    improvement_suggestions: Optional[List[str]] = None

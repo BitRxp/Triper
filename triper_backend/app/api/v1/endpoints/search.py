@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException
 from fastapi import status as http_status
 
-from app.db.repository import InMemoryRepository
+from app.db.repository import get_repository
 from app.models.requests import SearchRequest
 from app.models.responses import PackageResponse, SearchResponse
 from app.services.search_service import SearchService
 
 router = APIRouter()
-repository = InMemoryRepository()
-search_service = SearchService(repository=repository)
 
 
 @router.post("", response_model=SearchResponse)
 def create_search(request: SearchRequest):
+    repository = get_repository()
+    search_service = SearchService(repository=repository)
     search_result = search_service.search(request)
     return SearchResponse(
         request_id=search_result.request_id,
@@ -25,6 +25,8 @@ def create_search(request: SearchRequest):
 
 @router.get("/{request_id}", response_model=SearchResponse)
 def get_search_result(request_id: str):
+    repository = get_repository()
+    search_service = SearchService(repository=repository)
     search_result = search_service.load_search_result(request_id)
     if not search_result:
         raise HTTPException(

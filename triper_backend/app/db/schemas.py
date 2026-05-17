@@ -78,3 +78,13 @@ class SearchResultSchema(BaseModel):
     packages: List[PackageSchema] = []
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class FeedbackSchema(BaseModel):
+    feedback_id: str = Field(default_factory=lambda: str(__import__('uuid').uuid4()))
+    request_id: str
+    package_id: str
+    rating: int
+    comment: Optional[str] = None
+    improvement_suggestions: Optional[List[str]] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)

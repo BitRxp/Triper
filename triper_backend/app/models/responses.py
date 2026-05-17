@@ -77,3 +77,8 @@ class PackageSummary(BaseModel):
 
 class PopularPackagesResponse(BaseModel):
     packages: List[PackageSummary]
+
+
+class FeedbackResponse(BaseModel):
+    success: bool
+    message: str
