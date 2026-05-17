@@ -18,9 +18,10 @@ Main goals:
 3. Implement a tour search service with fallback logic.
 4. Support flexible date input: exact dates, windows, seasons.
 5. Add caching for results and a repository of popular destinations.
-6. Provide API endpoints for search, package discovery, and status.
-7. Include basic logging, monitoring, and error handling.
-8. Define JSON response contracts for the frontend.
+6. Integrate external travel data via RapidAPI Skyscanner for live flight offers.
+7. Provide API endpoints for search, package discovery, and status.
+8. Include basic logging, monitoring, and error handling.
+9. Define JSON response contracts for the frontend.
 
 ---
 
@@ -226,6 +227,60 @@ Response JSON:
 ```
 
 ### 5. POST `/api/v1/feedback` (optional)
+
+Description: collect user feedback on search results to improve package quality.
+
+Request JSON:
+
+```json
+{
+  "request_id": "abc123",
+  "package_id": "opt-001",
+  "rating": 4,
+  "comment": "I liked the option, but I would like to see more beach trips",
+  "improvement_suggestions": ["more beach destinations"]
+}
+```
+
+Response JSON:
+
+```json
+{
+  "success": true,
+  "message": "Thank you! Your feedback has been received."
+}
+```
+
+---
+
+## RapidAPI Skyscanner integration
+
+### Goal
+Use RapidAPI Skyscanner to fetch live flight offers and replace or enrich seed package pricing during search.
+
+### Implementation
+- Add `app/services/external_adapters.py` for external API adapters.
+- Add `app/core/settings.py` / `.env` support for:
+  - `RAPIDAPI_SKYSCANNER_HOST`
+  - `RAPIDAPI_SKYSCANNER_KEY`
+- Implement a `SkyscannerAdapter` with:
+  - request building from `SearchRequest`
+  - parsing RapidAPI response into internal flight offer models
+  - fallback when the external API returns no offers
+- Use adapter from `SearchService` so `POST /api/v1/search` can return live flight-based packages.
+- Keep local seed data as fallback if RapidAPI is unavailable or rate-limited.
+
+### Data flow
+1. `POST /api/v1/search` receives user input.
+2. `SearchService` calls `SkyscannerAdapter` for flights.
+3. If flights are found, combine them with package assembly logic.
+4. Store result in repository and return `processing` status.
+5. `GET /api/v1/search/{request_id}` returns completed package list.
+
+### Notes
+- Start with a minimal adapter that requests flights only; hotel data can stay mocked for MVP.
+- Use RapidAPI headers and host config to keep keys out of source control.
+- Add request/response logging for debugging external API calls.
 
 Description: collect user feedback on search results to improve package quality.
 
