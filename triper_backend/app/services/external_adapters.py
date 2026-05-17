@@ -53,6 +53,7 @@ class SkyscannerAdapter:
         origin_sky_id: str,
         origin_entity_id: str,
         departure_date: date,
+        return_date: Optional[date] = None,
         adults: int = 1,
         cabin_class: str = "economy",
         currency: str = "USD",
@@ -67,6 +68,8 @@ class SkyscannerAdapter:
             "currency": currency,
             "market": market,
         }
+        if return_date:
+            params["returnDate"] = return_date.isoformat()
         payload = self._request("/flights/searchFlightEverywhere", params)
         if not payload:
             return []

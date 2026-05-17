@@ -43,10 +43,12 @@ class SearchService:
                 if origin_sky_id and origin_entity_id:
                     departure_date = self._choose_departure_date(request)
                     duration_days = self._choose_duration(request)
+                    return_date = departure_date + timedelta(days=duration_days)
                     flight_results = adapter.search_flight_everywhere(
                         origin_sky_id=origin_sky_id,
                         origin_entity_id=origin_entity_id,
                         departure_date=departure_date,
+                        return_date=return_date,
                         adults=request.travelers,
                         cabin_class="economy",
                         currency=request.currency,
@@ -97,7 +99,7 @@ class SearchService:
                 days = max(duration_days, 1)
                 return_date = departure_date + timedelta(days=days)
 
-            total_price = float(offer.get("total_price") or request.budget)
+            total_price = float(offer.get("total_price") or request.budget) * request.travelers
             destination = offer.get("destination") or "Unknown destination"
             description = f"Live flight offer to {destination} with budget-aware pricing."
 
